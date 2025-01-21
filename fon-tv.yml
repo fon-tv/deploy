@@ -1,0 +1,161 @@
+services:
+    nginx:
+        image: nginx:latest
+        environment:
+            MAIN_DB_NAME: main
+            DJANGO_DB_NAME: django
+            ADMIN_SERVER_NAME: admin.localhost.ru # TODO: set domain
+            BACKEND_SERVER_NAME: backend.localhost.ru # TODO: set domain
+            FRONTEND_SERVER_NAME: frontend.localhost.ru # TODO: set domain
+
+        configs:
+            - source: nginx_conf
+              target: /etc/nginx/nginx.conf
+            - source: nginx_admin_template
+              target: /etc/nginx/templates/admin.conf.template
+            # - source: nginx_backend_template
+            #   target: /etc/nginx/templates/backend.conf.template
+            # - source: nginx_frontend_template
+            #   target: /etc/nginx/templates/frontend.conf.template
+            # - source: nginx_monitoring_template
+            #   target: /etc/nginx/templates/monitoring.conf.template
+        secrets:
+            - cert.crt # TODO: create certs
+            - cert.key # TODO: create certs
+        networks:
+            - intranet
+        ports:
+            - "80:80"
+            - "443:443"
+        deploy:
+            mode: replicated
+            replicas: 1
+            placement:
+                constraints: [node.role == manager]
+
+    db:
+        image: postgres:17.2-bookworm
+        environment:
+            - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        configs:
+            - source: postgresql_conf
+              target: /etc/postgresql.conf
+            - source: postgresql_init
+              target: /docker-entrypoint-initdb.d/01-init.sh
+        secrets:
+            - db_password
+            - db_backend_user
+            - db_backend_password
+            - db_django_user
+            - db_django_password
+        networks:
+            - intranet
+        ports:
+            - "5432:5432"
+        command: ["postgres", "-c", "config_file=/etc/postgresql.conf"]
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "root"]
+            interval: 5s
+            timeout: 10s
+            retries: 3
+        deploy:
+            mode: replicated
+            replicas: 1
+            placement:
+                constraints: [node.role == manager]
+
+    admin:
+        image: registry.docker.io/fon-tv/admin:dev # TODO: set registry
+        networks:
+            - intranet
+        environment:
+            - DB_HOST=db
+            - DB_PORT=5432
+            - MAIN_DB_NAME=fon_tv
+            - DJANGO_DB_NAME=fon_tv_django
+        secrets:
+            - db_django_user
+            - db_django_password
+            
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+                order: start-first
+
+    # backend:
+    #     image: registry.docker.io/fon-tv/backend:dev # TODO: set registry
+    #     networks:
+    #         - intranet
+    #     environment:
+    #         - DB_HOST=db
+    #         - DB_PORT=5432
+    #         - DB_USER=admin_user
+    #         - DB_NAME=fon_tv
+    #         - DJANGO_DB_NAME=fon_tv_django
+    #     secrets:
+    #         - db_password
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 1
+    #         update_config:
+    #             parallelism: 1
+    #             delay: 10s
+    #             order: start-first
+
+configs:
+    # Nginx
+    nginx_conf:
+        file: ./configs/nginx/nginx.conf
+    nginx_admin_template:
+        file: ./configs/nginx/templates/admin.conf.template
+    # nginx_backend_template:
+    #     file: ./configs/nginx/templates/backend.conf.template
+    # nginx_frontend_template:
+    #     file: ./configs/nginx/templates/frontend.conf.template
+    # nginx_monitoring_template:
+    #     file: ./configs/nginx/templates/monitoring.conf.template
+
+    # PostgreSQL
+    postgresql_conf:
+        file: ./configs/postgres/postgresql.conf
+    postgresql_init:
+        file: ./configs/postgres/init/01-init.sh
+
+    # Prometheus
+    prometheus_yml:
+        file: ./configs/prometheus/prometheus.yml
+
+    # Grafana
+    grafana_datasource_yml:
+        file: ./configs/grafana/datasource.yaml
+    grafana_dashboard_yml:
+        file: ./configs/grafana/dashboard.yaml
+
+secrets:
+    db_password:
+        external: true
+    db_backend_user:
+        external: true
+    db_backend_password:
+        external: true
+    db_django_user:
+        external: true
+    db_django_password:
+        external: true
+
+    cert.crt:
+        file: /etc/letsencrypt/live/domain/fullchain.pem # TODO: create certs
+    cert.key:
+        file: /etc/letsencrypt/live/domain/privkey.pem # TODO: create certs
+
+volumes:
+    db_data:
+
+networks:
+    intranet:
+        external: true
