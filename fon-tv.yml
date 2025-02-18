@@ -5,18 +5,15 @@ services:
             MAIN_DB_NAME: main
             DJANGO_DB_NAME: django
             ADMIN_SERVER_NAME: admin.localhost.ru # TODO: set domain
-            BACKEND_SERVER_NAME: backend.localhost.ru # TODO: set domain
-            FRONTEND_SERVER_NAME: frontend.localhost.ru # TODO: set domain
+            APP_SERVER_NAME: app.localhost.ru # TODO: set domain
 
         configs:
             - source: nginx_conf
               target: /etc/nginx/nginx.conf
             - source: nginx_admin_template
               target: /etc/nginx/templates/admin.conf.template
-            # - source: nginx_backend_template
-            #   target: /etc/nginx/templates/backend.conf.template
-            # - source: nginx_frontend_template
-            #   target: /etc/nginx/templates/frontend.conf.template
+            # - source: nginx_app_template
+            #   target: /etc/nginx/templates/app.conf.template
             # - source: nginx_monitoring_template
             #   target: /etc/nginx/templates/monitoring.conf.template
         secrets:
@@ -46,8 +43,8 @@ services:
               target: /docker-entrypoint-initdb.d/01-init.sh
         secrets:
             - db_password
-            - db_backend_user
-            - db_backend_password
+            - db_app_user
+            - db_app_password
             - db_django_user
             - db_django_password
         networks:
@@ -87,8 +84,8 @@ services:
                 delay: 10s
                 order: start-first
 
-    # backend:
-    #     image: registry.docker.io/fon-tv/backend:dev # TODO: set registry
+    # app:
+    #     image: registry.docker.io/fon-tv/app:dev # TODO: set registry
     #     networks:
     #         - intranet
     #     environment:
@@ -113,10 +110,8 @@ configs:
         file: ./configs/nginx/nginx.conf
     nginx_admin_template:
         file: ./configs/nginx/templates/admin.conf.template
-    # nginx_backend_template:
-    #     file: ./configs/nginx/templates/backend.conf.template
-    # nginx_frontend_template:
-    #     file: ./configs/nginx/templates/frontend.conf.template
+    # nginx_app_template:
+    #     file: ./configs/nginx/templates/app.conf.template
     # nginx_monitoring_template:
     #     file: ./configs/nginx/templates/monitoring.conf.template
 
@@ -139,9 +134,9 @@ configs:
 secrets:
     db_password:
         external: true
-    db_backend_user:
+    db_app_user:
         external: true
-    db_backend_password:
+    db_app_password:
         external: true
     db_django_user:
         external: true

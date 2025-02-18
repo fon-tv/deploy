@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-APP_USER=$(cat /run/secrets/db_app_user)
-APP_PASSWORD=$(cat /run/secrets/db_app_password)
-DJANGO_USER=$(cat /run/secrets/db_django_user)
-DJANGO_PASSWORD=$(cat /run/secrets/db_django_password)
+APP_USER=app
+APP_PASSWORD=app
+DJANGO_USER=django
+DJANGO_PASSWORD=django
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     CREATE USER $APP_USER WITH PASSWORD '$APP_PASSWORD';

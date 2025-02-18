@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./01-init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      MAIN_DB_NAME: main
+      DJANGO_DB_NAME: django
+
+    restart: unless-stopped
+    ports:
+      - 5432:5432 
+  
+  django:
+    depends_on:
+      - db
+    build: ../../admin
+    volumes:
+      - ./secrets/:/run/secrets
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      MAIN_DB_NAME: main
+      DJANGO_DB_NAME: django
+    ports:
+      - 8000:8000
+
+
+  # app:
+  #   depends_on:
+  #     - django
+  #   build: ../../app
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     - name=value
