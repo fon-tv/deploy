@@ -17,6 +17,7 @@ services:
     django:
         depends_on:
             - db
+            - minio
         build: ../../admin
         volumes:
             - ./secrets/:/run/secrets
@@ -25,18 +26,37 @@ services:
             DB_PORT: 5432
             APP_DB_NAME: app
             DJANGO_DB_NAME: django
+            AWS_S3_USE_SSL: false
+            AWS_S3_URL_PROTOCOL: http
+            AWS_S3_ENDPOINT_URL: http://host.docker.internal:9000
+            AWS_STORAGE_BUCKET_NAME: bucket
         ports:
             - 8000:8000
 
-    app:
-        depends_on:
-            - django
-        build: ../../app
-        volumes:
-            - ./secrets/:/run/secrets
-        environment:
-            DB_HOST: db
-            DB_PORT: 5432
-            APP_DB_NAME: app
+    minio:
+        image: minio/minio
         ports:
-            - 3000:3000
+            - "9000:9000"
+            - "9001:9001"
+        environment:
+            MINIO_ACCESS_KEY: minioadmin
+            MINIO_SECRET_KEY: minioadmin
+        command: server /data --console-address ":9001"
+        volumes:
+            - minio_data:/data
+
+    # app:
+    #     depends_on:
+    #         - django
+    #     build: ../../app
+    #     volumes:
+    #         - ./secrets/:/run/secrets
+    #     environment:
+    #         DB_HOST: db
+    #         DB_PORT: 5432
+    #         APP_DB_NAME: app
+    #     ports:
+    #         - 3000:3000
+
+volumes:
+    minio_data:
