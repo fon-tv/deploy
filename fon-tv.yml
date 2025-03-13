@@ -2,8 +2,6 @@ services:
     nginx:
         image: nginx:latest
         environment:
-            MAIN_DB_NAME: main
-            DJANGO_DB_NAME: django
             ADMIN_SERVER_NAME: admin.localhost.ru # TODO: set domain
             APP_SERVER_NAME: app.localhost.ru # TODO: set domain
 
@@ -70,7 +68,7 @@ services:
         environment:
             - DB_HOST=db
             - DB_PORT=5432
-            - MAIN_DB_NAME=fon_tv
+            - APP_DB_NAME=fon_tv
             - DJANGO_DB_NAME=fon_tv_django
         secrets:
             - db_django_user
@@ -84,25 +82,23 @@ services:
                 delay: 10s
                 order: start-first
 
-    # app:
-    #     image: registry.docker.io/fon-tv/app:dev # TODO: set registry
-    #     networks:
-    #         - intranet
-    #     environment:
-    #         - DB_HOST=db
-    #         - DB_PORT=5432
-    #         - DB_USER=admin_user
-    #         - DB_NAME=fon_tv
-    #         - DJANGO_DB_NAME=fon_tv_django
-    #     secrets:
-    #         - db_password
-    #     deploy:
-    #         mode: replicated
-    #         replicas: 1
-    #         update_config:
-    #             parallelism: 1
-    #             delay: 10s
-    #             order: start-first
+    app:
+        image: registry.docker.io/fon-tv/app:dev # TODO: set registry
+        networks:
+            - intranet
+        environment:
+            - DB_HOST=db
+            - DB_PORT=5432
+            - APP_DB_NAME=fon_tv
+        secrets:
+            - db_password
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+                order: start-first
 
 configs:
     # Nginx
