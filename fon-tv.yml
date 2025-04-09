@@ -2,21 +2,20 @@ services:
     nginx:
         image: nginx:latest
         environment:
-            ADMIN_SERVER_NAME: admin.localhost.ru # TODO: set domain
-            APP_SERVER_NAME: app.localhost.ru # TODO: set domain
+            ADMIN_SERVER_NAME: admin.fontv.clbots.ru
+            APP_SERVER_NAME: app.fontv.clbots.ru
 
         configs:
             - source: nginx_conf
               target: /etc/nginx/nginx.conf
             - source: nginx_admin_template
               target: /etc/nginx/templates/admin.conf.template
-            # - source: nginx_app_template
-            #   target: /etc/nginx/templates/app.conf.template
-            # - source: nginx_monitoring_template
-            #   target: /etc/nginx/templates/monitoring.conf.template
+            - source: nginx_app_template
+              target: /etc/nginx/templates/app.conf.template
+
         secrets:
-            - cert.crt # TODO: create certs
-            - cert.key # TODO: create certs
+            - cert.crt
+            - cert.key
         networks:
             - intranet
         ports:
@@ -31,7 +30,11 @@ services:
     db:
         image: postgres:17.2-bookworm
         environment:
-            - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+            APP_DB_NAME: fon_tv
+            DJANGO_DB_NAME: fon_tv_django
         volumes:
             - db_data:/var/lib/postgresql/data
         configs:
@@ -61,19 +64,68 @@ services:
             placement:
                 constraints: [node.role == manager]
 
+    redis:
+        image: redis
+        ports:
+            - 6379:6379
+        volumes:
+            - redis_data:/data
+        configs:
+            - source: redis_conf
+            - target: /usr/local/etc/redis/redis.conf
+        command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+                order: start-first
+
+    minio:
+        image: minio/minio
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        environment:
+            MINIO_ACCESS_KEY: minioadmin
+            MINIO_SECRET_KEY: minioadmin
+        command: server /data --console-address ":9001"
+        volumes:
+            - minio_data:/data
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+                order: start-first
+
     admin:
-        image: registry.docker.io/fon-tv/admin:dev # TODO: set registry
+        image: registry.fontv.clbots.ru:5000/admin:dev
         networks:
             - intranet
         environment:
-            - DB_HOST=db
-            - DB_PORT=5432
-            - APP_DB_NAME=fon_tv
-            - DJANGO_DB_NAME=fon_tv_django
+            DB_HOST: db
+            DB_PORT: 5432
+            APP_DB_NAME: fon_tv
+            DJANGO_DB_NAME: fon_tv_django
+            AWS_S3_USE_SSL: true
+            AWS_S3_URL_PROTOCOL: https
+            AWS_S3_ENDPOINT_URL: https://fontv.clbots.ru:9000
+            AWS_STORAGE_BUCKET_NAME: bucket
+            APP_SERVICE_URL: http://app:3000
+            SPORTS_API_URL: http://217.198.5.178:8081
+            
         secrets:
             - db_django_user
             - db_django_password
-            
+            - django_superuser_email
+            - django_superuser_username
+            - django_superuser_password
+            - aws_s3_access_key_id
+            - aws_s3_secret_access_key
+            - cache_invalidate_key
         deploy:
             mode: replicated
             replicas: 1
@@ -83,15 +135,24 @@ services:
                 order: start-first
 
     app:
-        image: registry.docker.io/fon-tv/app:dev # TODO: set registry
+        image: registry.fontv.clbots.ru:5000/app:dev
         networks:
             - intranet
         environment:
-            - DB_HOST=db
-            - DB_PORT=5432
-            - APP_DB_NAME=fon_tv
+            DB_HOST: db
+            DB_PORT: 5432
+            APP_DB_NAME: fon_tv
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            SPORTS_API_URL: http://217.198.5.178:8081
+            NEXT_PUBLIC_S3_ROOT: https://fontv.clbots.ru:9000/bucket/media
+
         secrets:
-            - db_password
+            - db_app_user
+            - db_app_password
+            - redis_user
+            - redis_password
+            - cache_invalidate_key
         deploy:
             mode: replicated
             replicas: 1
@@ -106,10 +167,8 @@ configs:
         file: ./configs/nginx/nginx.conf
     nginx_admin_template:
         file: ./configs/nginx/templates/admin.conf.template
-    # nginx_app_template:
-    #     file: ./configs/nginx/templates/app.conf.template
-    # nginx_monitoring_template:
-    #     file: ./configs/nginx/templates/monitoring.conf.template
+    nginx_app_template:
+        file: ./configs/nginx/templates/app.conf.template
 
     # PostgreSQL
     postgresql_conf:
@@ -117,17 +176,22 @@ configs:
     postgresql_init:
         file: ./configs/postgres/init/01-init.sh
 
-    # Prometheus
-    prometheus_yml:
-        file: ./configs/prometheus/prometheus.yml
-
-    # Grafana
-    grafana_datasource_yml:
-        file: ./configs/grafana/datasource.yaml
-    grafana_dashboard_yml:
-        file: ./configs/grafana/dashboard.yaml
+    # Redis
+    redis_conf:
+        file: ./configs/redis/redis.conf
 
 secrets:
+    # AWS
+    aws_s3_access_key_id:
+        external: true
+    aws_s3_secret_access_key:
+        external: true
+
+    # INTERSERVICE
+    cache_invalidate_key:
+        external: true
+
+    # DB
     db_password:
         external: true
     db_app_user:
@@ -139,13 +203,29 @@ secrets:
     db_django_password:
         external: true
 
+    # Redis
+    redis_user:
+        external: true
+    redis_password:
+        external: true
+
+    # Django
+    django_superuser_email:
+        external: true
+    django_superuser_username:
+        external: true
+    django_superuser_password:
+        external: true
+
+    # SSL
     cert.crt:
-        file: /etc/letsencrypt/live/domain/fullchain.pem # TODO: create certs
+        external: true
     cert.key:
-        file: /etc/letsencrypt/live/domain/privkey.pem # TODO: create certs
+        external: true
 
 volumes:
     db_data:
+    redis_data:
 
 networks:
     intranet:

@@ -1,0 +1,62 @@
+services:
+    nginx:
+        image: nginx:latest
+        configs:
+            - source: nginx-conf
+              target: /etc/nginx/nginx.conf
+        secrets:
+            - cert.crt
+            - cert.key
+        ports:
+            - "5000:5000"
+            - "5001:5001"
+        deploy:
+            mode: replicated
+            replicas: 1
+            placement:
+                constraints: [node.role == manager]
+
+    registry:
+        image: registry:latest
+        environment:
+            REGISTRY_AUTH: htpasswd
+            REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+            REGISTRY_AUTH_HTPASSWD_PATH: /auth/registry.password
+            REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+            REGISTRY_STORAGE_DELETE_ENABLED: "true"
+        volumes:
+            - /root/registry/registry.password:/auth/registry.password
+            - /root/registry/data:/data
+
+    ui:
+        image: joxit/docker-registry-ui:main
+        environment:
+            - SINGLE_REGISTRY=true
+            - REGISTRY_TITLE=Docker Registry UI
+            - DELETE_IMAGES=true
+            - SHOW_CONTENT_DIGEST=true
+            - NGINX_PROXY_PASS_URL=http://registry:5000
+            - SHOW_CATALOG_NB_TAGS=true
+            - CATALOG_MIN_BRANCHES=1
+            - CATALOG_MAX_BRANCHES=1
+            - TAGLIST_PAGE_SIZE=100
+            - REGISTRY_SECURED=false
+            - CATALOG_ELEMENTS_LIMIT=1000
+
+configs:
+    nginx-conf:
+        file: ./configs/registry/nginx.conf
+
+secrets:
+    cert.crt:
+        external: true
+    cert.key:
+        external: true
+        
+# mkdir -p /root/registry/data
+
+# sudo apt install apache2-utils
+
+# htpasswd -Bbn root root > /root/registry/registry.password
+
+# docker stack deploy -c registry.yml registry

@@ -39,6 +39,7 @@ services:
             AWS_S3_ENDPOINT_URL: http://host.docker.internal:9000
             AWS_STORAGE_BUCKET_NAME: bucket
             APP_SERVICE_URL: http://app:3000
+            SPORTS_API_URL: http://217.198.5.178:8081
         ports:
             - 8000:8000
 
@@ -65,10 +66,10 @@ services:
         command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
     app:
-        depends_on:
-            - django
-            - db
-            - redis
+        # depends_on:
+            # - django
+            # - db
+            # - redis
         build:
             context: ../../app
             args:

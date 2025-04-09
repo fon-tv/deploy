@@ -1,0 +1,1 @@
+docker exec $(docker inspect --format '{{.Status.ContainerStatus.ContainerID}}' $(docker service ps --filter "desired-state=running" --format "{{.ID}}" "registry_registry" | head -n 1)) registry garbage-collect --delete-untagged /etc/docker/registry/config.yml
