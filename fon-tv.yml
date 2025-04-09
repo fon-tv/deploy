@@ -101,65 +101,65 @@ services:
                 delay: 10s
                 order: start-first
 
-    admin:
-        image: registry.fontv.clbots.ru:5000/admin:dev
-        networks:
-            - intranet
-        environment:
-            DB_HOST: db
-            DB_PORT: 5432
-            APP_DB_NAME: fon_tv
-            DJANGO_DB_NAME: fon_tv_django
-            AWS_S3_USE_SSL: true
-            AWS_S3_URL_PROTOCOL: https
-            AWS_S3_ENDPOINT_URL: https://fontv.clbots.ru:9000
-            AWS_STORAGE_BUCKET_NAME: bucket
-            APP_SERVICE_URL: http://app:3000
-            SPORTS_API_URL: http://217.198.5.178:8081
+    # admin:
+    #     image: registry.fontv.clbots.ru:5000/admin:dev
+    #     networks:
+    #         - intranet
+    #     environment:
+    #         DB_HOST: db
+    #         DB_PORT: 5432
+    #         APP_DB_NAME: fon_tv
+    #         DJANGO_DB_NAME: fon_tv_django
+    #         AWS_S3_USE_SSL: true
+    #         AWS_S3_URL_PROTOCOL: https
+    #         AWS_S3_ENDPOINT_URL: https://fontv.clbots.ru:9000
+    #         AWS_STORAGE_BUCKET_NAME: bucket
+    #         APP_SERVICE_URL: http://app:3000
+    #         SPORTS_API_URL: http://217.198.5.178:8081
             
-        secrets:
-            - db_django_user
-            - db_django_password
-            - django_superuser_email
-            - django_superuser_username
-            - django_superuser_password
-            - aws_s3_access_key_id
-            - aws_s3_secret_access_key
-            - cache_invalidate_key
-        deploy:
-            mode: replicated
-            replicas: 1
-            update_config:
-                parallelism: 1
-                delay: 10s
-                order: start-first
+    #     secrets:
+    #         - db_django_user
+    #         - db_django_password
+    #         - django_superuser_email
+    #         - django_superuser_username
+    #         - django_superuser_password
+    #         - aws_s3_access_key_id
+    #         - aws_s3_secret_access_key
+    #         - cache_invalidate_key
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 1
+    #         update_config:
+    #             parallelism: 1
+    #             delay: 10s
+    #             order: start-first
 
-    app:
-        image: registry.fontv.clbots.ru:5000/app:dev
-        networks:
-            - intranet
-        environment:
-            DB_HOST: db
-            DB_PORT: 5432
-            APP_DB_NAME: fon_tv
-            REDIS_HOST: redis
-            REDIS_PORT: 6379
-            SPORTS_API_URL: http://217.198.5.178:8081
-            NEXT_PUBLIC_S3_ROOT: https://fontv.clbots.ru:9000/bucket/media
+    # app:
+    #     image: registry.fontv.clbots.ru:5000/app:dev
+    #     networks:
+    #         - intranet
+    #     environment:
+    #         DB_HOST: db
+    #         DB_PORT: 5432
+    #         APP_DB_NAME: fon_tv
+    #         REDIS_HOST: redis
+    #         REDIS_PORT: 6379
+    #         SPORTS_API_URL: http://217.198.5.178:8081
+    #         NEXT_PUBLIC_S3_ROOT: https://fontv.clbots.ru:9000/bucket/media
 
-        secrets:
-            - db_app_user
-            - db_app_password
-            - redis_user
-            - redis_password
-            - cache_invalidate_key
-        deploy:
-            mode: replicated
-            replicas: 1
-            update_config:
-                parallelism: 1
-                delay: 10s
-                order: start-first
+    #     secrets:
+    #         - db_app_user
+    #         - db_app_password
+    #         - redis_user
+    #         - redis_password
+    #         - cache_invalidate_key
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 1
+    #         update_config:
+    #             parallelism: 1
+    #             delay: 10s
+    #             order: start-first
 
 configs:
     # Nginx
