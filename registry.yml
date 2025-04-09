@@ -45,14 +45,14 @@ services:
 
 configs:
     nginx-conf:
-        file: ./configs/registry/nginx.conf
+        file: ./config/registry/nginx.conf
 
 secrets:
     cert.crt:
         external: true
     cert.key:
         external: true
-        
+
 # mkdir -p /root/registry/data
 
 # sudo apt install apache2-utils
