@@ -110,7 +110,7 @@ services:
             DB_PORT: 5432
             APP_DB_NAME: fon_tv
             DJANGO_DB_NAME: fon_tv_django
-            AWS_S3_USE_SSL: true
+            AWS_S3_USE_SSL: 1
             AWS_S3_URL_PROTOCOL: https
             AWS_S3_ENDPOINT_URL: https://fontv.clbots.ru:9000
             AWS_STORAGE_BUCKET_NAME: bucket
