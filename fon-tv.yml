@@ -3,7 +3,7 @@ services:
         image: nginx:latest
         environment:
             ADMIN_SERVER_NAME: admin.fontv.clbots.ru
-            APP_SERVER_NAME: app.fontv.clbots.ru
+            APP_SERVER_NAME: fontv.clbots.ru
 
         configs:
             - source: nginx_conf
