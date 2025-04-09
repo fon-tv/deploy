@@ -142,7 +142,8 @@ services:
             DB_HOST: db
             DB_PORT: 5432
             APP_DB_NAME: fon_tv
-            REDIS_HOST: redis
+            # TODO: fix redis host
+            REDIS_HOST: http://fontv.clbots.ru
             REDIS_PORT: 6379
             SPORTS_API_URL: http://217.198.5.178:8081
             NEXT_PUBLIC_S3_ROOT: http://fontv.clbots.ru:9000/bucket/media
