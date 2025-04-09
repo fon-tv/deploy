@@ -164,21 +164,22 @@ services:
 configs:
     # Nginx
     nginx_conf:
-        file: ./configs/nginx/nginx.conf
+        file: ./config/nginx/nginx.conf
     nginx_admin_template:
-        file: ./configs/nginx/templates/admin.conf.template
+        file: ./config/nginx/templates/admin.conf.template
     nginx_app_template:
-        file: ./configs/nginx/templates/app.conf.template
+        file: ./config/nginx/templates/app.conf.template
 
     # PostgreSQL
-    postgresql_conf:
-        file: ./configs/postgres/postgresql.conf
+    
+    # postgresql_conf:
+    #     file: ./config/postgres/postgresql.conf
     postgresql_init:
-        file: ./configs/postgres/init/01-init.sh
+        file: ./config/postgres/init/01-init.sh
 
     # Redis
     redis_conf:
-        file: ./configs/redis/redis.conf
+        file: ./config/redis/redis.conf
 
 secrets:
     # AWS
