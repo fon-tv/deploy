@@ -38,8 +38,8 @@ services:
         volumes:
             - db_data:/var/lib/postgresql/data
         configs:
-            - source: postgresql_conf
-              target: /etc/postgresql.conf
+            # - source: postgresql_conf
+            #   target: /etc/postgresql.conf
             - source: postgresql_init
               target: /docker-entrypoint-initdb.d/01-init.sh
         secrets:
@@ -171,7 +171,7 @@ configs:
         file: ./config/nginx/templates/app.conf.template
 
     # PostgreSQL
-    
+
     # postgresql_conf:
     #     file: ./config/postgres/postgresql.conf
     postgresql_init:
