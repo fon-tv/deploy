@@ -106,6 +106,9 @@ services:
         networks:
             - intranet
         environment:
+            DEBUG: 0
+            ALLOWED_HOSTS: admin.fontv.clbots.ru
+            CSRF_TRUSTED_ORIGINS: https://admin.fontv.clbots.ru
             DB_HOST: db
             DB_PORT: 5432
             APP_DB_NAME: fon_tv
@@ -118,6 +121,7 @@ services:
             SPORTS_API_URL: http://217.198.5.178:8081
             
         secrets:
+            - django_secret_key
             - db_django_user
             - db_django_password
             - django_superuser_email
@@ -211,6 +215,8 @@ secrets:
         external: true
 
     # Django
+    django_secret_key:
+        external: true
     django_superuser_email:
         external: true
     django_superuser_username:
