@@ -10,9 +10,9 @@ if [ ! -f .env ]; then
 fi
 
 # Load environment variables
-set -o allexport
-source ./.env set
-+o allexport
+set -a
+. ./.env
+set +a
 
 # List of required environment variables
 required_vars=(
