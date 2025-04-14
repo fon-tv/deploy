@@ -52,6 +52,43 @@ services:
                 delay: 10s
                 order: start-first
 
+    db:
+        image: postgres:17.2-bookworm
+        environment:
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+            APP_DB_NAME: fon_tv
+            DJANGO_DB_NAME: fon_tv_django
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        configs:
+            - source: postgresql_conf
+              target: /etc/postgresql.conf
+            - source: postgresql_init
+              target: /docker-entrypoint-initdb.d/01-init.sh
+        secrets:
+            - db_password
+            - db_app_user
+            - db_app_password
+            - db_django_user
+            - db_django_password
+        networks:
+            - intranet
+        ports:
+            - "5432:5432"
+        command: ["postgres", "-c", "config_file=/etc/postgresql.conf"]
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "root"]
+            interval: 5s
+            timeout: 10s
+            retries: 3
+        deploy:
+            mode: replicated
+            replicas: 1
+            placement:
+                constraints: [node.role == manager]
+
     admin:
         image: ${REGISTRY_URL}/admin:dev
         networks:
@@ -146,6 +183,8 @@ secrets:
         external: true
 
     # DB
+    db_password:
+        external: true
     db_app_user:
         external: true
     db_app_password:
@@ -179,6 +218,7 @@ secrets:
 
 volumes:
     redis_data:
+    db_data:
 
 networks:
     intranet:

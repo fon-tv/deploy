@@ -71,6 +71,7 @@ required_secrets=(
     cache_invalidate_key
 
     # Database credentials
+    db_password
     db_app_user             # Application database user
     db_app_password         # Application database password
     db_django_user          # Django database user

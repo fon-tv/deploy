@@ -14,18 +14,23 @@ The deployment consists of the following main components:
    - Routes traffic to admin and app services
    - Configurable server names for different environments
 
-2. **Redis** (`redis`)
+2. **Db** (`db`)
+   - Postgresql database
+   - Runs on port 5432
+   - Data storage
+
+3. **Redis** (`redis`)
    - Used for caching and session management
    - Runs on port 6385
    - Includes authentication and custom configuration
 
-3. **Admin Service** (`admin`)
+4. **Admin Service** (`admin`)
    - Django-based administration panel
    - Handles content management and system configuration
    - Integrates with AWS S3 for media storage
    - Connects to PostgreSQL database
 
-4. **App Service** (`app`)
+5. **App Service** (`app`)
    - Next.js-based frontend application
    - Serves the main user interface
    - Connects to both Redis and PostgreSQL
@@ -71,6 +76,7 @@ The following secrets must be created in Docker Swarm before deployment:
 - `cache_invalidate_key`
 
 #### Database credentials
+- `db_password`: Database root password
 - `db_app_user`: Application database user
 - `db_app_password`: Application database password
 - `db_django_user`: Django database user
