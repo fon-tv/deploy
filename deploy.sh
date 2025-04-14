@@ -119,6 +119,6 @@ if [ ${#missing_vars[@]} -ne 0 ] || [ ${#missing_secrets[@]} -ne 0 ]; then
 fi
 
 # Deploy the stack using Docker
-docker stack deploy -c swarm.yml "$STACK_NAME" --detach=false
+docker stack deploy -c docker-compose.yml "$STACK_NAME" --detach=false
 
 echo "Stack deployed successfully!"
