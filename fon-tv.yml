@@ -179,7 +179,6 @@ secrets:
         external: true
 
 volumes:
-    db_data:
     redis_data:
 
 networks:

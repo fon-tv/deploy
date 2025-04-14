@@ -143,7 +143,6 @@ The services are configured for replication with the following settings:
 ## Volumes
 
 The deployment uses the following persistent volumes:
-- `db_data`: For PostgreSQL data
 - `redis_data`: For Redis data
 
 ## Security
