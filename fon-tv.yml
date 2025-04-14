@@ -2,8 +2,9 @@ services:
     nginx:
         image: nginx:latest
         environment:
-            ADMIN_SERVER_NAME: admin.fontv.clbots.ru
-            APP_SERVER_NAME: fontv.clbots.ru
+            ADMIN_SERVER_NAME: ${ADMIN_SERVER_NAME}
+            APP_SERVER_NAME: ${APP_SERVER_NAME}
+            CACHE_SERVER_NAME: ${CACHE_SERVER_NAME}
 
         configs:
             - source: nginx_conf
@@ -27,72 +28,23 @@ services:
             placement:
                 constraints: [node.role == manager]
 
-    db:
-        image: postgres:17.2-bookworm
-        environment:
-            POSTGRES_DB: postgres
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD_FILE: /run/secrets/db_password
-            APP_DB_NAME: fon_tv
-            DJANGO_DB_NAME: fon_tv_django
+    redis:
+        image: redis:latest
         volumes:
-            - db_data:/var/lib/postgresql/data
+            - redis_data:/data
+            - ./config/redis/entrypoint.sh:/usr/local/bin/entrypoint.sh
         configs:
-            - source: postgresql_conf
-              target: /etc/postgresql.conf
-            - source: postgresql_init
-              target: /docker-entrypoint-initdb.d/01-init.sh
+            - source: redis_conf_template
+              target: /usr/local/etc/redis/redis.conf.template
+        entrypoint: ["sh", "/usr/local/bin/entrypoint.sh"]
+        command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
         secrets:
-            - db_password
-            - db_app_user
-            - db_app_password
-            - db_django_user
-            - db_django_password
+            - redis_user
+            - redis_password
         networks:
             - intranet
         ports:
-            - "5432:5432"
-        command: ["postgres", "-c", "config_file=/etc/postgresql.conf"]
-        healthcheck:
-            test: ["CMD", "pg_isready", "-U", "root"]
-            interval: 5s
-            timeout: 10s
-            retries: 3
-        deploy:
-            mode: replicated
-            replicas: 1
-            placement:
-                constraints: [node.role == manager]
-
-    redis:
-        image: redis
-        ports:
-            - 6379:6379
-        volumes:
-            - redis_data:/data
-        configs:
-            - source: redis_conf
-              target: /usr/local/etc/redis/redis.conf
-        command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-        deploy:
-            mode: replicated
-            replicas: 1
-            update_config:
-                parallelism: 1
-                delay: 10s
-                order: start-first
-
-    minio:
-        image: minio/minio
-        ports:
-            - "9000:9000"
-            - "9001:9001"
-        environment:
-            MINIO_ACCESS_KEY: minioadmin
-            MINIO_SECRET_KEY: minioadmin
-        command: server /data --console-address ":9001"
-        volumes:
-            - minio_data:/data
+            - "6385:6385"
         deploy:
             mode: replicated
             replicas: 1
@@ -102,23 +54,22 @@ services:
                 order: start-first
 
     admin:
-        image: registry.fontv.clbots.ru:5000/fon-tv_admin:dev
+        image: ${REGISTRY_URL}/fon-tv_admin:dev
         networks:
             - intranet
         environment:
             DEBUG: 0
-            ALLOWED_HOSTS: admin.fontv.clbots.ru
-            CSRF_TRUSTED_ORIGINS: https://admin.fontv.clbots.ru
-            DB_HOST: db
-            DB_PORT: 5432
-            APP_DB_NAME: fon_tv
-            DJANGO_DB_NAME: fon_tv_django
-            AWS_S3_USE_SSL: 0
-            AWS_S3_URL_PROTOCOL: http
-            AWS_S3_ENDPOINT_URL: http://fontv.clbots.ru:9000
-            AWS_STORAGE_BUCKET_NAME: bucket
+            ALLOWED_HOSTS: ${ADMIN_SERVER_NAME}
+            CSRF_TRUSTED_ORIGINS: https://${ADMIN_SERVER_NAME}
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            APP_DB_NAME: ${APP_DB_NAME}
+            DJANGO_DB_NAME: ${DJANGO_DB_NAME}
+            AWS_S3_USE_SSL: 1
+            AWS_S3_URL_PROTOCOL: https
+            AWS_S3_ENDPOINT_URL: ${AWS_S3_ENDPOINT_URL}
             APP_SERVICE_URL: http://app:3000
-            SPORTS_API_URL: http://217.198.5.178:8081
+            SPORTS_API_URL: ${SPORTS_API_URL}
             
         secrets:
             - django_secret_key
@@ -139,18 +90,17 @@ services:
                 order: start-first
 
     app:
-        image: registry.fontv.clbots.ru:5000/fon-tv_app:dev
+        image: ${REGISTRY_URL}/fon-tv_app:dev
         networks:
             - intranet
         environment:
-            DB_HOST: db
-            DB_PORT: 5432
-            APP_DB_NAME: fon_tv
-            # TODO: fix redis host
-            REDIS_HOST: fontv.clbots.ru
-            REDIS_PORT: 6379
-            SPORTS_API_URL: http://217.198.5.178:8081
-            NEXT_PUBLIC_S3_ROOT: http://fontv.clbots.ru:9000/bucket/media
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            APP_DB_NAME: ${APP_DB_NAME}
+            REDIS_HOST: redis
+            REDIS_PORT: 6385
+            SPORTS_API_URL: ${SPORTS_API_URL}
+            NEXT_PUBLIC_S3_ROOT: ${NEXT_PUBLIC_S3_ROOT}
 
         secrets:
             - db_app_user
@@ -182,8 +132,8 @@ configs:
         file: ./config/postgres/init/01-init.sh
 
     # Redis
-    redis_conf:
-        file: ./config/redis/redis.conf
+    redis_conf_template:
+        file: ./config/redis/redis.conf.template
 
 secrets:
     # AWS
@@ -197,8 +147,6 @@ secrets:
         external: true
 
     # DB
-    db_password:
-        external: true
     db_app_user:
         external: true
     db_app_password:
