@@ -14,6 +14,8 @@ source .env
 
 # List of required environment variables
 required_vars=(
+    STACK_NAME
+
     # Server Names
     ADMIN_SERVER_NAME
     APP_SERVER_NAME
@@ -113,6 +115,6 @@ if [ ${#missing_vars[@]} -ne 0 ] || [ ${#missing_secrets[@]} -ne 0 ]; then
 fi
 
 # Deploy the stack
-docker stack deploy -c fon-tv.yml fon-tv
+docker stack deploy -c docker-compose.yml ${STACK_NAME}
 
 echo "Stack deployed successfully!"

@@ -4,7 +4,6 @@ services:
         environment:
             ADMIN_SERVER_NAME: ${ADMIN_SERVER_NAME}
             APP_SERVER_NAME: ${APP_SERVER_NAME}
-            CACHE_SERVER_NAME: ${CACHE_SERVER_NAME}
 
         configs:
             - source: nginx_conf
@@ -54,7 +53,7 @@ services:
                 order: start-first
 
     admin:
-        image: ${REGISTRY_URL}/fon-tv_admin:dev
+        image: ${REGISTRY_URL}/admin:dev
         networks:
             - intranet
         environment:
@@ -90,7 +89,7 @@ services:
                 order: start-first
 
     app:
-        image: ${REGISTRY_URL}/fon-tv_app:dev
+        image: ${REGISTRY_URL}/app:dev
         networks:
             - intranet
         environment:
