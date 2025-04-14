@@ -1,6 +1,6 @@
-# SWARM Django NodeJS Deployment Configuration
+# SWARM Django NextJS Deployment Configuration
 
-This repository contains the deployment configuration for the NodeJS application using Docker Swarm. The setup includes admin panel(Django), Redis for caching and Nginx as reverse-proxy.
+This repository contains the deployment configuration for the NextJS application using Docker Swarm. The setup includes admin panel(Django), Redis for caching and Nginx as reverse-proxy.
 
 ## Architecture Overview
 
