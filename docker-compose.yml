@@ -69,7 +69,7 @@ services:
             AWS_S3_ENDPOINT_URL: ${AWS_S3_ENDPOINT_URL}
             APP_SERVICE_URL: http://app:3000
             SPORTS_API_URL: ${SPORTS_API_URL}
-            
+            S3_ROOT_URL: ${S3_ROOT_URL}
         secrets:
             - django_secret_key
             - db_django_user
