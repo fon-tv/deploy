@@ -62,7 +62,7 @@ The deployment requires several environment variables to be set in your `.env` f
 
 #### S3 Configuration
 - `AWS_S3_ENDPOINT_URL`: S3-compatible storage endpoint
-- `S3_ROOT_URL`: Public S3 root URL
+- `S3_MEDIA_URL`: Public S3 media URL
 
 ### Secrets
 

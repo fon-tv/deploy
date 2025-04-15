@@ -36,10 +36,11 @@ required_vars=(
 
     # S3 Configuration
     AWS_S3_ENDPOINT_URL
-    S3_ROOT_URL
+    AWS_STORAGE_BUCKET_NAME
+    S3_MEDIA_URL
 )
 
-export NEXT_PUBLIC_S3_ROOT="${S3_ROOT_URL}/media"
+export NEXT_PUBLIC_S3_ROOT="${S3_MEDIA_URL}"
 
 # Check for required environment variables
 missing_vars=()
