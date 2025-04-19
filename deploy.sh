@@ -40,8 +40,6 @@ required_vars=(
     S3_MEDIA_URL
 )
 
-export NEXT_PUBLIC_S3_ROOT="${S3_MEDIA_URL}"
-
 # Check for required environment variables
 missing_vars=()
 for var in "${required_vars[@]}"; do
